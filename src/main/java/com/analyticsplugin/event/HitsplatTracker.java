@@ -32,7 +32,7 @@ public class HitsplatTracker {
             actorId = -1;
         }
 
-        eventLogger.logEvent(new AnalyticsData.HitsplatLogEntry(
+        eventLogger.submitEvent(new AnalyticsData.HitsplatLogEntry(
                 eventLogger.tickCount(),
                 eventLogger.eventTime(),
                 hitsplatApplied.getHitsplat().getAmount(),

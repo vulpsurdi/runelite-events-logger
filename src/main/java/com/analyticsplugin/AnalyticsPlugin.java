@@ -1,5 +1,6 @@
 package com.analyticsplugin;
 
+import com.analyticsplugin.event.AnalyticsData;
 import com.analyticsplugin.event.EventLogger;
 import com.analyticsplugin.event.HitsplatTracker;
 import com.analyticsplugin.event.PlayerTracker;
@@ -13,8 +14,24 @@ import java.time.Clock;
 import java.time.ZonedDateTime;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
-import net.runelite.api.events.*;
+import net.runelite.api.Client;
+import net.runelite.api.events.AnimationChanged;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.CommandExecuted;
+import net.runelite.api.events.FakeXpDrop;
+import net.runelite.api.events.GameObjectSpawned;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.GraphicChanged;
+import net.runelite.api.events.HitsplatApplied;
+import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.events.NpcChanged;
+import net.runelite.api.events.NpcDespawned;
+import net.runelite.api.events.NpcSpawned;
+import net.runelite.api.events.ProjectileMoved;
+import net.runelite.api.events.StatChanged;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.RuneLiteProperties;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -108,6 +125,7 @@ public class AnalyticsPlugin extends Plugin {
         }
 
         eventLogger = new EventLogger(client, gson, clock, pluginDirectory, runeliteVersion);
+        eventLogger.startUp();
         playerTracker = new PlayerTracker(client, eventLogger);
         playerTracker.onConfigChanged(config);
         hitsplatTracker = new HitsplatTracker(eventLogger);
@@ -211,5 +229,12 @@ public class AnalyticsPlugin extends Plugin {
     }
 
     @Subscribe
-    public void onGameStateChanged(GameStateChanged event) {}
+    public void onGameStateChanged(GameStateChanged event) {
+        if (eventLogger != null) {
+            eventLogger.submitEvent(new AnalyticsData.GameStateChangedLogEntry(
+                    eventLogger.tickCount(),
+                    eventLogger.eventTime(),
+                    event.getGameState().getState()));
+        }
+    }
 }

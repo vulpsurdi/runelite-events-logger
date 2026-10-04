@@ -49,7 +49,7 @@ public class PlayerTracker {
     private void logPlayerStartTracking(Player player) {
         final var localPlayer = client.getLocalPlayer();
         final boolean isLocal = localPlayer != null && localPlayer.getId() == player.getId();
-        eventLogger.logEvent(new AnalyticsData.PlayerStartTrackingLogEntry(
+        eventLogger.submitEvent(new AnalyticsData.PlayerStartTrackingLogEntry(
                 eventLogger.tickCount(), eventLogger.eventTime(), player.getId(), player.getName(), isLocal));
     }
 
@@ -57,12 +57,12 @@ public class PlayerTracker {
      * Player is no longer tracked, likely because they are no longer visible to us.
      */
     private void logPlayerStopTracking(int playerId) {
-        eventLogger.logEvent(new AnalyticsData.PlayerStopTrackingLogEntry(
+        eventLogger.submitEvent(new AnalyticsData.PlayerStopTrackingLogEntry(
                 eventLogger.tickCount(), eventLogger.eventTime(), playerId));
     }
 
     private void logPlayerPosition(int playerId, AnalyticsData.DetailedPosition detailedPosition) {
-        eventLogger.logEvent(new AnalyticsData.PlayerMoveLogEntry(
+        eventLogger.submitEvent(new AnalyticsData.PlayerMoveLogEntry(
                 eventLogger.tickCount(), eventLogger.eventTime(), playerId, detailedPosition));
     }
 
@@ -100,6 +100,9 @@ public class PlayerTracker {
                 trackedPlayerSet.remove(player.getId());
             }
         }
-        trackedPlayerSet.forEach(this::logPlayerStopTracking);
+        trackedPlayerSet.forEach(playerId -> {
+            logPlayerStopTracking(playerId);
+            trackedPlayerSet.remove(playerId);
+        });
     }
 }

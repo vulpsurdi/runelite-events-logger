@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id("com.diffplug.spotless") version "6.25.0"
+    id("com.diffplug.spotless") version "8.10.3"
 }
 
 repositories {
@@ -85,12 +85,12 @@ spotless {
         formatAnnotations()
         palantirJavaFormat()
         endWithNewline()
+        expandWildcardImports()
     }
 
     format 'misc', {
         target '*.gradle', '*.md', '.gitignore'
         trimTrailingWhitespace()
-        indentWithSpaces(4)
         endWithNewline()
     }
 }

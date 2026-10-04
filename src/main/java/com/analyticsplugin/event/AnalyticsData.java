@@ -20,6 +20,7 @@ public class AnalyticsData {
         PLAYER_START_TRACKING,
         PLAYER_STOP_TRACKING,
         PLAYER_MOVE,
+        GAME_STATE_CHANGED,
     }
 
     public interface LogEntry {
@@ -85,6 +86,14 @@ public class AnalyticsData {
         ZonedDateTime timestamp;
         int playerId;
         DetailedPosition detailedPosition;
+    }
+
+    @Value
+    public static class GameStateChangedLogEntry implements LogEntry {
+        LogEntryType type = LogEntryType.GAME_STATE_CHANGED;
+        int tickCount;
+        ZonedDateTime timestamp;
+        int gameState;
     }
 
     @Data
