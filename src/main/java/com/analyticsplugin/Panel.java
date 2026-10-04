@@ -6,13 +6,12 @@ import javax.swing.border.EmptyBorder;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 class Panel extends PluginPanel {
-    private final AnalyticsPlugin plugin;
-
-    Panel(AnalyticsPlugin plugin) {
+    Panel() {
         super(false);
-        this.plugin = plugin;
 
         setBorder(new EmptyBorder(10, 10, 10, 10));
         setBackground(ColorScheme.DARK_GRAY_COLOR);

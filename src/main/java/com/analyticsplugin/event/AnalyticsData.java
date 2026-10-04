@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public class AnalyticsData {
 
-    public static String LOG_VERSION = "1.0.0";
+    private static final String LOG_VERSION = "1.0.0";
 
     public enum LogEntryType {
         NEW_SESSION,
@@ -63,8 +63,10 @@ public class AnalyticsData {
         int tickCount;
         ZonedDateTime timestamp;
         int playerId;
+
         @Nullable
         String playerName;
+
         boolean isLocal;
     }
 
@@ -94,7 +96,8 @@ public class AnalyticsData {
         int regionId;
 
         public static WorldPoint from(net.runelite.api.coords.WorldPoint worldPoint) {
-            return new WorldPoint(worldPoint.getX(), worldPoint.getY(), worldPoint.getPlane(), worldPoint.getRegionID());
+            return new WorldPoint(
+                    worldPoint.getX(), worldPoint.getY(), worldPoint.getPlane(), worldPoint.getRegionID());
         }
     }
 
@@ -130,8 +133,8 @@ public class AnalyticsData {
                 Client client,
                 net.runelite.api.coords.WorldPoint worldPoint,
                 net.runelite.api.coords.LocalPoint localPoint) {
-            final var detailedPosition =
-                    new AnalyticsData.DetailedPosition(WorldPoint.from(worldPoint), LocalPoint.from(localPoint), false, null);
+            final var detailedPosition = new AnalyticsData.DetailedPosition(
+                    WorldPoint.from(worldPoint), LocalPoint.from(localPoint), false, null);
 
             final var worldView = client.getWorldView(localPoint.getWorldView());
             detailedPosition.isInstance = worldView.isInstance();

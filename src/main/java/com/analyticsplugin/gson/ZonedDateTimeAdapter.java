@@ -2,17 +2,21 @@ package com.analyticsplugin.gson;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+@NullMarked
 public class ZonedDateTimeAdapter extends TypeAdapter<ZonedDateTime> {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
     @Override
-    public void write(JsonWriter out, ZonedDateTime value) throws IOException {
+    public void write(JsonWriter out, @Nullable ZonedDateTime value) throws IOException {
         if (value == null) {
             out.nullValue();
         } else {
@@ -21,8 +25,11 @@ public class ZonedDateTimeAdapter extends TypeAdapter<ZonedDateTime> {
     }
 
     @Override
-    public ZonedDateTime read(JsonReader in) throws IOException {
-        String str = in.nextString();
-        return str != null ? ZonedDateTime.parse(str, FORMATTER) : null;
+    public @Nullable ZonedDateTime read(JsonReader in) throws IOException {
+        if (in.peek() == JsonToken.NULL) {
+            in.nextNull();
+            return null;
+        }
+        return ZonedDateTime.parse(in.nextString(), FORMATTER);
     }
 }

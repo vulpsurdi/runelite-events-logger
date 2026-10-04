@@ -81,7 +81,7 @@ public class AnalyticsPlugin extends Plugin {
 
     @Override
     protected void startUp() {
-        Panel panel = new Panel(this);
+        Panel panel = new Panel();
         final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/com/analyticsplugin/panel_icon.png");
         navButton = NavigationButton.builder()
                 .tooltip("Analytics")
@@ -91,7 +91,9 @@ public class AnalyticsPlugin extends Plugin {
                 .build();
         clientToolbar.addNavigation(navButton);
 
-        gson = new GsonBuilder().registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter()).create();
+        gson = new GsonBuilder()
+                .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
+                .create();
         clock = Clock.systemDefaultZone();
 
         final var config = configManager.getConfig(AnalyticsPluginConfig.class);
@@ -134,14 +136,6 @@ public class AnalyticsPlugin extends Plugin {
         final var config = configManager.getConfig(AnalyticsPluginConfig.class);
         if (playerTracker != null) {
             playerTracker.onConfigChanged(config);
-        }
-        if (playerTracker == null) {
-            return;
-        }
-        if (event.getGroup().equals(AnalyticsPluginConfig.GROUP)) {
-            if (event.getKey().equals(AnalyticsPluginConfig.LOG_OTHER_PLAYERS)) {
-                playerTracker.setTrackOtherPlayers("true".equals(event.getNewValue()));
-            }
         }
     }
 
@@ -212,7 +206,7 @@ public class AnalyticsPlugin extends Plugin {
             playerTracker.trackPlayers();
         }
         if (eventLogger != null) {
-            eventLogger.onGameTicket();
+            eventLogger.onGameTick();
         }
     }
 

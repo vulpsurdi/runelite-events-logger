@@ -1,9 +1,8 @@
 package com.analyticsplugin.event;
 
+import com.analyticsplugin.AnalyticsPluginConfig;
 import java.util.HashMap;
 import java.util.HashSet;
-
-import com.analyticsplugin.AnalyticsPluginConfig;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +47,8 @@ public class PlayerTracker {
      * in a game session.
      */
     private void logPlayerStartTracking(Player player) {
-        final boolean isLocal = client.getLocalPlayer().getId() == player.getId();
+        final var localPlayer = client.getLocalPlayer();
+        final boolean isLocal = localPlayer != null && localPlayer.getId() == player.getId();
         eventLogger.logEvent(new AnalyticsData.PlayerStartTrackingLogEntry(
                 eventLogger.tickCount(), eventLogger.eventTime(), player.getId(), player.getName(), isLocal));
     }
@@ -73,7 +73,8 @@ public class PlayerTracker {
         final var detailedPosition =
                 AnalyticsData.DetailedPosition.from(client, player.getWorldLocation(), player.getLocalLocation());
         var trackedPlayer = trackedPlayers.get(player.getId());
-        final boolean isLocal = client.getLocalPlayer().getId() == player.getId();
+        final var localPlayer = client.getLocalPlayer();
+        final boolean isLocal = localPlayer != null && localPlayer.getId() == player.getId();
         if (!isLocal && !trackOtherPlayers) {
             return false;
         }
@@ -94,8 +95,8 @@ public class PlayerTracker {
         final var trackedPlayerSet = new HashSet<>(trackedPlayers.keySet());
         // For now just do top-level world view. If we need it in the future,
         // we can add tracking for players beyond the top-level.
-        for (var player: client.getTopLevelWorldView().players()) {
-            if(trackPlayer(player)) {
+        for (var player : client.getTopLevelWorldView().players()) {
+            if (trackPlayer(player)) {
                 trackedPlayerSet.remove(player.getId());
             }
         }

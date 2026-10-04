@@ -1,13 +1,11 @@
 package com.analyticsplugin.event;
 
 import com.google.gson.Gson;
-
 import java.io.*;
 import java.nio.file.StandardOpenOption;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -101,7 +99,7 @@ public class EventLogger {
         log.debug("{}", json);
         if (logFile != null) {
             try {
-                logFile.write(json);
+                logFile.write(json + "\n");
             } catch (IOException e) {
                 log.warn("Failed to write to log file", e);
             }
@@ -156,7 +154,8 @@ public class EventLogger {
                 final var filepath = logDirectory.join(playerName, formattedDate + ".log");
                 filepath.getParent().createDirectories();
                 // Writes in UTF-8 format
-                final var bufferedWriter = filepath.openBufferedWriter(StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                final var bufferedWriter = filepath.openBufferedWriter(
+                        StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
                 logFile = new LogFile(dateUtc, playerName, filepath, bufferedWriter);
             } catch (IOException e) {
                 log.error("Failed to create new log file", e);
@@ -167,7 +166,7 @@ public class EventLogger {
         }
     }
 
-    public void onGameTicket() {
+    public void onGameTick() {
         occasionalFlush();
         checkLogFile();
     }
@@ -175,5 +174,4 @@ public class EventLogger {
     public void shutDown() {
         closeLogFile();
     }
-
 }

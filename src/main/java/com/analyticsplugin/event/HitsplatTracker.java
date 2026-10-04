@@ -8,7 +8,7 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public class HitsplatTracker {
 
-    public EventLogger eventLogger;
+    private final EventLogger eventLogger;
 
     public HitsplatTracker(EventLogger eventLogger) {
         this.eventLogger = eventLogger;
