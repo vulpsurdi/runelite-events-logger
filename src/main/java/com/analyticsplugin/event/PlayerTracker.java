@@ -102,7 +102,7 @@ public class PlayerTracker {
         }
         trackedPlayerSet.forEach(playerId -> {
             logPlayerStopTracking(playerId);
-            trackedPlayerSet.remove(playerId);
+            trackedPlayers.remove(playerId);
         });
     }
 }

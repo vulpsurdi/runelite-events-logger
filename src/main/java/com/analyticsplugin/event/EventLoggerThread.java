@@ -9,6 +9,8 @@ import java.nio.file.StandardOpenOption;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,12 +49,14 @@ public class EventLoggerThread implements Runnable {
             OPEN_LOG_FILE_RETRY_DELAY_SECONDS * OPEN_LOG_FILE_RETRY_ATTEMPTS * 2;
     /// Maximum messages we can have sitting on the command queue. After that, we will drop messages.
     private static final int MAX_COMMAND_QUEUE = 1000;
+    private static final int MAX_BACKLOG = 100;
 
     private final Gson gson;
     private final Clock clock;
     private final Filepath logDirectory;
 
     private final LinkedBlockingQueue<Command> commandQueue = new LinkedBlockingQueue<>(MAX_COMMAND_QUEUE);
+    private final Queue<Command> backloggedCommands = new ArrayDeque<>(MAX_BACKLOG);
 
     private final AtomicBoolean killSwitch = new AtomicBoolean(false);
 
@@ -156,7 +160,9 @@ public class EventLoggerThread implements Runnable {
                 log.warn("Failed to write to log file", e);
             }
         } else {
-            // TODO: Backlog events that are received while the log file is not open
+            if (backloggedCommands.size() < MAX_BACKLOG) {
+                backloggedCommands.add(new EventCommand(logEntry));
+            }
         }
     }
 
@@ -183,7 +189,6 @@ public class EventLoggerThread implements Runnable {
         } else if (command instanceof OpenLogCommand) {
             final var openLogCommand = (OpenLogCommand) command;
             openLogFile(openLogCommand);
-            // TODO: Check backlog events that are received while the log file is not open.
         }
     }
 
@@ -214,6 +219,13 @@ public class EventLoggerThread implements Runnable {
         }
     }
 
+    private void drainBacklog() {
+        Command command;
+        while (logFile != null && (command = backloggedCommands.poll()) != null) {
+            handleCommand(command);
+        }
+    }
+
     @Override
     public void run() {
         if (killSwitch.get()) {
@@ -226,7 +238,7 @@ public class EventLoggerThread implements Runnable {
                 if (command != null) {
                     handleCommand(command);
                 }
-                occasionalFlush();
+                drainBacklog();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
@@ -237,6 +249,8 @@ public class EventLoggerThread implements Runnable {
         while ((command = commandQueue.poll()) != null) {
             handleCommand(command);
         }
+
+        drainBacklog();
 
         closeLogFile();
     }
