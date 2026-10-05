@@ -4,7 +4,6 @@ A RuneLite plugin that records damage taken and done for analytical purposes.
 
 ## TODO
 
-- Track is-inside-instance on position
 - Track more player data (names, hp, stats)
 - Track npcs
 - Track animations

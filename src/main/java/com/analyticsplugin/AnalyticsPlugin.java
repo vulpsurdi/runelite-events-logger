@@ -4,6 +4,7 @@ import com.analyticsplugin.event.AnalyticsData;
 import com.analyticsplugin.event.EventLogger;
 import com.analyticsplugin.event.HitsplatTracker;
 import com.analyticsplugin.event.PlayerTracker;
+import com.analyticsplugin.gson.DetailedPositionAdapter;
 import com.analyticsplugin.gson.ZonedDateTimeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.FakeXpDrop;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
@@ -25,7 +25,6 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GraphicChanged;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.ItemContainerChanged;
-import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.NpcChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
@@ -110,6 +109,7 @@ public class AnalyticsPlugin extends Plugin {
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
+                .registerTypeAdapter(AnalyticsData.DetailedPosition.class, new DetailedPositionAdapter())
                 .create();
         clock = Clock.systemDefaultZone();
 
@@ -165,12 +165,6 @@ public class AnalyticsPlugin extends Plugin {
     }
 
     @Subscribe
-    public void onCommandExecuted(CommandExecuted event) {}
-
-    @Subscribe
-    public void onMenuOptionClicked(MenuOptionClicked event) {}
-
-    @Subscribe
     public void onProjectileMoved(ProjectileMoved event) {}
 
     @Subscribe
@@ -192,22 +186,13 @@ public class AnalyticsPlugin extends Plugin {
     public void onNpcChanged(NpcChanged event) {}
 
     @Subscribe
-    public void onSpecialCounterUpdate(SpecialCounterUpdate event) {}
-
-    @Subscribe
-    public void onStatusUpdate(StatusUpdate event) {}
-
-    @Subscribe
-    public void onUserPart(UserPart event) {}
+    public void onNpcDespawned(NpcDespawned event) {}
 
     @Subscribe
     public void onAnimationChanged(AnimationChanged event) {}
 
     @Subscribe
     public void onNpcLootReceived(NpcLootReceived event) {}
-
-    @Subscribe
-    public void onNpcDespawned(NpcDespawned event) {}
 
     @Subscribe
     public void onItemContainerChanged(ItemContainerChanged event) {}
@@ -237,4 +222,13 @@ public class AnalyticsPlugin extends Plugin {
                     event.getGameState().getState()));
         }
     }
+
+    @Subscribe
+    public void onSpecialCounterUpdate(SpecialCounterUpdate event) {}
+
+    @Subscribe
+    public void onStatusUpdate(StatusUpdate event) {}
+
+    @Subscribe
+    public void onUserPart(UserPart event) {}
 }

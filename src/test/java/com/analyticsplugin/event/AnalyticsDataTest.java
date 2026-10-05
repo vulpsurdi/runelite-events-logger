@@ -34,8 +34,8 @@ public class AnalyticsDataTest {
 
         AnalyticsData.LocalPoint result = AnalyticsData.LocalPoint.from(rlLocalPoint);
 
-        assertEquals(128, result.getX());
-        assertEquals(256, result.getY());
+        assertEquals(1, result.getX());
+        assertEquals(2, result.getY());
         assertEquals(0, result.getWorldView());
     }
 
@@ -61,7 +61,7 @@ public class AnalyticsDataTest {
             assertFalse(position.isInstance());
             assertNull(position.getRealWorldPoint());
             assertEquals(3000, position.getWorldPoint().getX());
-            assertEquals(64, position.getLocalPoint().getX());
+            assertEquals(rlLocalPoint.getSceneX(), position.getLocalPoint().getX());
         }
     }
 

@@ -113,14 +113,14 @@ public class AnalyticsData {
     @Data
     @AllArgsConstructor
     public static class LocalPoint {
-        /// 1/128th of a tile
+        /// In scene space
         int x;
-        /// 1/128th of a tile
+        /// In scene space
         int y;
         int worldView;
 
         public static LocalPoint from(net.runelite.api.coords.LocalPoint localPoint) {
-            return new LocalPoint(localPoint.getX(), localPoint.getY(), localPoint.getWorldView());
+            return new LocalPoint(localPoint.getSceneX(), localPoint.getSceneY(), localPoint.getWorldView());
         }
     }
 
@@ -130,7 +130,7 @@ public class AnalyticsData {
     public static class DetailedPosition {
         /// This isn't a very useful position inside an instance.
         WorldPoint worldPoint;
-        /// Sub-tile position, potentially within an instance.
+        /// Position relative to the scene.
         LocalPoint localPoint;
         boolean isInstance;
         /// Converted from localPoint using the worldView. This tells
