@@ -11,3 +11,7 @@ nbproject/
 # JVM crash dumps
 hs_err_pid*.log
 replay_pid*.log
+
+# OS artifacts
+.DS_Store
+
