@@ -21,6 +21,9 @@ public class AnalyticsData {
         PLAYER_STOP_TRACKING,
         PLAYER_MOVE,
         GAME_STATE_CHANGED,
+        NPC_SPAWNED,
+        NPC_DESPAWNED,
+        NPC_CHANGED,
     }
 
     public interface LogEntry {
@@ -94,6 +97,37 @@ public class AnalyticsData {
         int tickCount;
         ZonedDateTime timestamp;
         int gameState;
+    }
+
+    @Value
+    public static class NPCSpawnedLogEntry implements LogEntry {
+        LogEntryType type = LogEntryType.NPC_SPAWNED;
+        int tickCount;
+        ZonedDateTime timestamp;
+        int index;
+        int npcId;
+        @Nullable
+        String name;
+        int combatLevel;
+    }
+
+    @Value
+    public static class NPCDespawnedLogEntry implements LogEntry {
+        LogEntryType type = LogEntryType.NPC_DESPAWNED;
+        int tickCount;
+        ZonedDateTime timestamp;
+        int index;
+        int npcId;
+    }
+
+    @Value
+    public static class NPCChangedLogEntry implements LogEntry {
+        LogEntryType type = LogEntryType.NPC_CHANGED;
+        int tickCount;
+        ZonedDateTime timestamp;
+        int index;
+        int oldId;
+        int newId;
     }
 
     @Data

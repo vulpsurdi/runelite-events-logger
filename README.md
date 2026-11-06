@@ -8,7 +8,6 @@ A RuneLite plugin that records damage taken and done for analytical purposes.
 - Track npcs
 - Track animations
 - Track projectiles
-- Log to a file
 - Track chat messages
 
 ## Future

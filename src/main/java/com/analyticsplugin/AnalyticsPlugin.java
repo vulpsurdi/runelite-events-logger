@@ -3,6 +3,7 @@ package com.analyticsplugin;
 import com.analyticsplugin.event.AnalyticsData;
 import com.analyticsplugin.event.EventLogger;
 import com.analyticsplugin.event.HitsplatTracker;
+import com.analyticsplugin.event.NPCTracker;
 import com.analyticsplugin.event.PlayerTracker;
 import com.analyticsplugin.gson.DetailedPositionAdapter;
 import com.analyticsplugin.gson.ZonedDateTimeAdapter;
@@ -88,6 +89,9 @@ public class AnalyticsPlugin extends Plugin {
     private PlayerTracker playerTracker;
 
     @Nullable
+    private NPCTracker npcTracker;
+
+    @Nullable
     private HitsplatTracker hitsplatTracker;
 
     @Provides
@@ -128,6 +132,7 @@ public class AnalyticsPlugin extends Plugin {
         eventLogger.startUp();
         playerTracker = new PlayerTracker(client, eventLogger);
         playerTracker.onConfigChanged(config);
+        npcTracker = new NPCTracker(eventLogger);
         hitsplatTracker = new HitsplatTracker(eventLogger);
     }
 
@@ -180,13 +185,19 @@ public class AnalyticsPlugin extends Plugin {
     public void onGraphicChanged(GraphicChanged event) {}
 
     @Subscribe
-    public void onNpcSpawned(NpcSpawned event) {}
+    public void onNpcSpawned(NpcSpawned event) {
+        npcTracker.onNpcSpawned(event);
+    }
 
     @Subscribe
-    public void onNpcChanged(NpcChanged event) {}
+    public void onNpcChanged(NpcChanged event) {
+        npcTracker.onNpcChanged(event);
+    }
 
     @Subscribe
-    public void onNpcDespawned(NpcDespawned event) {}
+    public void onNpcDespawned(NpcDespawned event) {
+        npcTracker.onNpcDespawned(event);
+    }
 
     @Subscribe
     public void onAnimationChanged(AnimationChanged event) {}
