@@ -1,6 +1,6 @@
-package com.analyticsplugin.gson;
+package com.eventslogger.gson;
 
-import com.analyticsplugin.event.AnalyticsData;
+import com.eventslogger.event.EventData;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -10,10 +10,10 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @NullMarked
-public class DetailedPositionAdapter extends TypeAdapter<AnalyticsData.DetailedPosition> {
+public class DetailedPositionAdapter extends TypeAdapter<EventData.DetailedPosition> {
 
     @Override
-    public void write(JsonWriter out, AnalyticsData.@Nullable DetailedPosition value) throws IOException {
+    public void write(JsonWriter out, EventData.@Nullable DetailedPosition value) throws IOException {
         if (value == null) {
             out.nullValue();
         } else {
@@ -77,24 +77,24 @@ public class DetailedPositionAdapter extends TypeAdapter<AnalyticsData.DetailedP
         }
     }
 
-    private AnalyticsData.WorldPoint parseWorldPointSafely(String component) {
-        AnalyticsData.WorldPoint worldPosition;
+    private EventData.WorldPoint parseWorldPointSafely(String component) {
+        EventData.WorldPoint worldPosition;
         final var parts = component.trim().split(",");
         final var x = parseIntSafely(parts, 0);
         final var y = parseIntSafely(parts, 1);
         final var plane = parseIntSafely(parts, 2);
         final var regionId = parseIntSafely(parts, 3);
-        worldPosition = new AnalyticsData.WorldPoint(x, y, plane, regionId);
+        worldPosition = new EventData.WorldPoint(x, y, plane, regionId);
         return worldPosition;
     }
 
-    private AnalyticsData.LocalPoint parseLocalPositionSafely(String component) {
-        AnalyticsData.LocalPoint localPosition;
+    private EventData.LocalPoint parseLocalPositionSafely(String component) {
+        EventData.LocalPoint localPosition;
         final var parts = component.trim().split(",");
         final var x = parseIntSafely(parts, 0);
         final var y = parseIntSafely(parts, 1);
         final var worldView = parseIntSafely(parts, 2);
-        localPosition = new AnalyticsData.LocalPoint(x, y, worldView);
+        localPosition = new EventData.LocalPoint(x, y, worldView);
         return localPosition;
     }
 
@@ -102,16 +102,16 @@ public class DetailedPositionAdapter extends TypeAdapter<AnalyticsData.DetailedP
      * Best effort parsing to be resilient to future format changes.
      */
     @Override
-    public AnalyticsData.@Nullable DetailedPosition read(JsonReader in) throws IOException {
+    public EventData.@Nullable DetailedPosition read(JsonReader in) throws IOException {
         if (in.peek() == JsonToken.NULL) {
             in.nextNull();
             return null;
         }
         final var unparsedString = in.nextString().trim();
         final var components = unparsedString.split("\\|");
-        AnalyticsData.WorldPoint worldPosition = null;
-        AnalyticsData.LocalPoint localPosition = null;
-        AnalyticsData.WorldPoint realWorldPosition = null;
+        EventData.WorldPoint worldPosition = null;
+        EventData.LocalPoint localPosition = null;
+        EventData.WorldPoint realWorldPosition = null;
         boolean isInstance = false;
         for (final var untrimmedComponent : components) {
             final var component = untrimmedComponent.trim();
@@ -139,9 +139,9 @@ public class DetailedPositionAdapter extends TypeAdapter<AnalyticsData.DetailedP
                 }
             }
         }
-        return new AnalyticsData.DetailedPosition(
-                worldPosition != null ? worldPosition : new AnalyticsData.WorldPoint(0, 0, 0, 0),
-                localPosition != null ? localPosition : new AnalyticsData.LocalPoint(0, 0, 0),
+        return new EventData.DetailedPosition(
+                worldPosition != null ? worldPosition : new EventData.WorldPoint(0, 0, 0, 0),
+                localPosition != null ? localPosition : new EventData.LocalPoint(0, 0, 0),
                 isInstance,
                 realWorldPosition);
     }

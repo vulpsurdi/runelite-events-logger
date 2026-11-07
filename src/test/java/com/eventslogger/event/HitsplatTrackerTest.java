@@ -1,4 +1,4 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -42,10 +42,10 @@ public class HitsplatTrackerTest {
         return event;
     }
 
-    private AnalyticsData.HitsplatLogEntry capture() {
-        ArgumentCaptor<AnalyticsData.LogEntry> captor = ArgumentCaptor.forClass(AnalyticsData.LogEntry.class);
+    private EventData.HitsplatLogEntry capture() {
+        ArgumentCaptor<EventData.LogEntry> captor = ArgumentCaptor.forClass(EventData.LogEntry.class);
         verify(eventLogger).submitEvent(captor.capture());
-        return (AnalyticsData.HitsplatLogEntry) captor.getValue();
+        return (EventData.HitsplatLogEntry) captor.getValue();
     }
 
     @Test
@@ -55,14 +55,14 @@ public class HitsplatTrackerTest {
 
         tracker.logHitsplat(hitsplatApplied(player, 7, 1));
 
-        AnalyticsData.HitsplatLogEntry entry = capture();
-        assertEquals(AnalyticsData.ActorType.PLAYER, entry.getActorType());
+        EventData.HitsplatLogEntry entry = capture();
+        assertEquals(EventData.ActorType.PLAYER, entry.getActorType());
         assertEquals(123, entry.getActorId());
         assertEquals(7, entry.getAmount());
         assertEquals(1, entry.getHitsplatType());
         assertEquals(42, entry.getTickCount());
         assertEquals(NOW, entry.getTimestamp());
-        assertEquals(AnalyticsData.LogEntryType.HITSPLAT, entry.getType());
+        assertEquals(EventData.LogEntryType.HITSPLAT, entry.getType());
     }
 
     @Test
@@ -72,8 +72,8 @@ public class HitsplatTrackerTest {
 
         tracker.logHitsplat(hitsplatApplied(npc, 10, 2));
 
-        AnalyticsData.HitsplatLogEntry entry = capture();
-        assertEquals(AnalyticsData.ActorType.NPC, entry.getActorType());
+        EventData.HitsplatLogEntry entry = capture();
+        assertEquals(EventData.ActorType.NPC, entry.getActorType());
         assertEquals(456, entry.getActorId());
         assertEquals(10, entry.getAmount());
     }
@@ -84,8 +84,8 @@ public class HitsplatTrackerTest {
 
         tracker.logHitsplat(hitsplatApplied(actor, 0, 0));
 
-        AnalyticsData.HitsplatLogEntry entry = capture();
-        assertEquals(AnalyticsData.ActorType.UNKNOWN, entry.getActorType());
+        EventData.HitsplatLogEntry entry = capture();
+        assertEquals(EventData.ActorType.UNKNOWN, entry.getActorType());
         assertEquals(-1, entry.getActorId());
     }
 }

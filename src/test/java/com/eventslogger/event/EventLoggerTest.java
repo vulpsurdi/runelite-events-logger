@@ -1,11 +1,11 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.analyticsplugin.gson.ZonedDateTimeAdapter;
+import com.eventslogger.gson.ZonedDateTimeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class EventLoggerTest {
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
                 .create();
         clock = Clock.fixed(FIXED_INSTANT, ZoneOffset.UTC);
-        pluginPath = Filepath.Unchecked.getRooted(tempFolder.getRoot().toPath());
+        pluginPath = Filepath.Unchecked.getRooted(tempFolder.getRoot().toPath().resolve("events-logger"));
     }
 
     private EventLogger newLogger() {
@@ -88,10 +88,10 @@ public class EventLoggerTest {
         logger.startUp();
         logger.shutDown();
 
-        Path analyticsDir = tempFolder.getRoot().toPath().resolve("analytics");
-        assertTrue("log directory should exist", Files.isDirectory(analyticsDir));
+        Path eventsLoggerDir = tempFolder.getRoot().toPath().resolve("events-logger");
+        assertTrue("log directory should exist", Files.isDirectory(eventsLoggerDir));
 
-        Path logFile = findSingleLogFile(analyticsDir);
+        Path logFile = findSingleLogFile(eventsLoggerDir);
         List<String> lines = Files.readAllLines(logFile);
         assertEquals(1, lines.size());
         assertTrue(lines.get(0).contains("\"type\":\"NEW_SESSION\""));
@@ -108,7 +108,7 @@ public class EventLoggerTest {
         logger.logNewSession();
         logger.shutDown();
 
-        Path logFile = findSingleLogFile(tempFolder.getRoot().toPath().resolve("analytics"));
+        Path logFile = findSingleLogFile(tempFolder.getRoot().toPath().resolve("events-logger"));
         List<String> lines = Files.readAllLines(logFile);
         // One NEW_SESSION from the constructor, one from the explicit call.
         assertEquals(2, lines.size());
@@ -122,11 +122,10 @@ public class EventLoggerTest {
         EventLogger logger = newLogger();
         logger.startUp();
 
-        logger.submitEvent(
-                new AnalyticsData.HitsplatLogEntry(3, logger.eventTime(), 15, 0, AnalyticsData.ActorType.NPC, 2000));
+        logger.submitEvent(new EventData.HitsplatLogEntry(3, logger.eventTime(), 15, 0, EventData.ActorType.NPC, 2000));
         logger.shutDown();
 
-        Path logFile = findSingleLogFile(tempFolder.getRoot().toPath().resolve("analytics"));
+        Path logFile = findSingleLogFile(tempFolder.getRoot().toPath().resolve("events-logger"));
         List<String> lines = Files.readAllLines(logFile);
         assertEquals(2, lines.size()); // NEW_SESSION + the hitsplat
         assertTrue(lines.get(1).contains("\"type\":\"HITSPLAT\""));
@@ -153,8 +152,8 @@ public class EventLoggerTest {
         logger.shutDown();
     }
 
-    private Path findSingleLogFile(Path analyticsDir) throws IOException {
-        try (var stream = Files.list(analyticsDir)) {
+    private Path findSingleLogFile(Path logDir) throws IOException {
+        try (var stream = Files.list(logDir)) {
             List<Path> files = stream.filter(Files::isRegularFile).collect(java.util.stream.Collectors.toList());
             assertEquals("expected exactly one log file", 1, files.size());
             return files.get(0);

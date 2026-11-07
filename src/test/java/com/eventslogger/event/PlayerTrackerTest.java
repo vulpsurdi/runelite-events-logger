@@ -1,4 +1,4 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -9,7 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.analyticsplugin.AnalyticsPluginConfig;
+import com.eventslogger.EventsLoggerConfig;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -98,11 +98,11 @@ public class PlayerTrackerTest {
 
         tracker.trackPlayer(local);
 
-        ArgumentCaptor<AnalyticsData.LogEntry> captor = ArgumentCaptor.forClass(AnalyticsData.LogEntry.class);
+        ArgumentCaptor<EventData.LogEntry> captor = ArgumentCaptor.forClass(EventData.LogEntry.class);
         verify(eventLogger, times(2)).submitEvent(captor.capture());
 
-        AnalyticsData.PlayerStartTrackingLogEntry start = (AnalyticsData.PlayerStartTrackingLogEntry)
-                captor.getAllValues().get(0);
+        EventData.PlayerStartTrackingLogEntry start =
+                (EventData.PlayerStartTrackingLogEntry) captor.getAllValues().get(0);
         assertTrue(start.isLocal());
         org.junit.Assert.assertEquals(7, start.getPlayerId());
         org.junit.Assert.assertEquals("Me", start.getPlayerName());
@@ -123,7 +123,7 @@ public class PlayerTrackerTest {
 
     @Test
     public void onConfigChangedUpdatesFlag() {
-        AnalyticsPluginConfig config = mock(AnalyticsPluginConfig.class);
+        EventsLoggerConfig config = mock(EventsLoggerConfig.class);
         when(config.logOtherPlayers()).thenReturn(true);
         Player local = player(1, "Me", 0, 0);
         Player other = player(2, "Other", 10, 10);
@@ -154,9 +154,9 @@ public class PlayerTrackerTest {
         Player moved = player(1, "Me", 9, 9);
         tracker.trackPlayer(moved); // moved = 1 more position event
 
-        ArgumentCaptor<AnalyticsData.LogEntry> captor = ArgumentCaptor.forClass(AnalyticsData.LogEntry.class);
+        ArgumentCaptor<EventData.LogEntry> captor = ArgumentCaptor.forClass(EventData.LogEntry.class);
         verify(eventLogger, times(3)).submitEvent(captor.capture());
-        assertTrue(captor.getAllValues().get(2) instanceof AnalyticsData.PlayerMoveLogEntry);
+        assertTrue(captor.getAllValues().get(2) instanceof EventData.PlayerMoveLogEntry);
     }
 
     @Test
@@ -176,11 +176,11 @@ public class PlayerTrackerTest {
         org.mockito.Mockito.doReturn(indexedObjectSet()).when(topLevel).players();
         tracker.trackPlayers();
 
-        ArgumentCaptor<AnalyticsData.LogEntry> captor = ArgumentCaptor.forClass(AnalyticsData.LogEntry.class);
+        ArgumentCaptor<EventData.LogEntry> captor = ArgumentCaptor.forClass(EventData.LogEntry.class);
         verify(eventLogger, times(3)).submitEvent(captor.capture());
-        AnalyticsData.LogEntry last = captor.getAllValues().get(2);
-        assertTrue(last instanceof AnalyticsData.PlayerStopTrackingLogEntry);
-        org.junit.Assert.assertEquals(1, ((AnalyticsData.PlayerStopTrackingLogEntry) last).getPlayerId());
+        EventData.LogEntry last = captor.getAllValues().get(2);
+        assertTrue(last instanceof EventData.PlayerStopTrackingLogEntry);
+        org.junit.Assert.assertEquals(1, ((EventData.PlayerStopTrackingLogEntry) last).getPlayerId());
     }
 
     @SuppressWarnings("unchecked")

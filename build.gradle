@@ -15,7 +15,7 @@ repositories {
 }
 
 def runeLiteVersion = 'latest.release'
-def pluginMainClass = 'com.analyticsplugin.AnalyticsPluginTest'
+def pluginMainClass = 'com.eventslogger.EventsLoggerPluginTest'
 
 dependencies {
     compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
@@ -32,7 +32,7 @@ dependencies {
     testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
 }
 
-group = 'com.analyticsplugin'
+group = 'com.eventslogger'
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'

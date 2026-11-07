@@ -1,13 +1,13 @@
-package com.analyticsplugin;
+package com.eventslogger;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
 
-@ConfigGroup(AnalyticsPluginConfig.GROUP)
-public interface AnalyticsPluginConfig extends Config {
-    String GROUP = "analyticsplugin";
+@ConfigGroup(EventsLoggerConfig.GROUP)
+public interface EventsLoggerConfig extends Config {
+    String GROUP = "eventslogger";
 
     @ConfigSection(position = 0, name = "Logging", description = "Logging settings")
     String loggingSection = "loggingSection";

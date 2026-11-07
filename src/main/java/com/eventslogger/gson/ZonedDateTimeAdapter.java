@@ -1,4 +1,4 @@
-package com.analyticsplugin.gson;
+package com.eventslogger.gson;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;

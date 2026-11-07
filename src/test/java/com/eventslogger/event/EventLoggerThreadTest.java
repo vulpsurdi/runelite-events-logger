@@ -1,10 +1,10 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.analyticsplugin.gson.ZonedDateTimeAdapter;
+import com.eventslogger.gson.ZonedDateTimeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
@@ -39,21 +39,16 @@ public class EventLoggerThreadTest {
         gson = new GsonBuilder()
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
                 .create();
-        pluginPath = Filepath.Unchecked.getRooted(tempFolder.getRoot().toPath());
+        pluginPath = Filepath.Unchecked.getRooted(tempFolder.getRoot().toPath().resolve("events-logger"));
     }
 
     private Clock fixedClock() {
         return Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC);
     }
 
-    private AnalyticsData.HitsplatLogEntry hitsplat(int amount) {
-        return new AnalyticsData.HitsplatLogEntry(
-                1,
-                ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC),
-                amount,
-                0,
-                AnalyticsData.ActorType.PLAYER,
-                42);
+    private EventData.HitsplatLogEntry hitsplat(int amount) {
+        return new EventData.HitsplatLogEntry(
+                1, ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC), amount, 0, EventData.ActorType.PLAYER, 42);
     }
 
     /** Set the interrupt flag then run; run() drains all queued commands and closes the file, then returns. */
@@ -68,7 +63,7 @@ public class EventLoggerThreadTest {
     }
 
     private Path logFilePath(String fileName) {
-        return tempFolder.getRoot().toPath().resolve("analytics").resolve(fileName);
+        return tempFolder.getRoot().toPath().resolve("events-logger").resolve(fileName);
     }
 
     @Test
@@ -149,7 +144,7 @@ public class EventLoggerThreadTest {
 
     @Test
     public void noFileWrittenWhenLogDirectoryCannotBeCreated() throws IOException {
-        // Point the plugin path at an existing *file*. Creating the "analytics" subdirectory under it fails, so no log
+        // Point the plugin path at an existing *file*. Creating the subdirectory or file under it fails, so no log
         // file can ever be opened and nothing should be written.
         Path blocker = tempFolder.newFile("not-a-dir").toPath();
         Filepath badPath = Filepath.Unchecked.getRooted(blocker);
@@ -167,7 +162,7 @@ public class EventLoggerThreadTest {
             Thread.interrupted();
         }
 
-        assertFalse(Files.exists(blocker.resolve("analytics").resolve("test.log")));
+        assertFalse(Files.exists(blocker.resolve("test.log")));
     }
 
     @Test

@@ -1,5 +1,6 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
+import java.util.HashMap;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -10,8 +11,6 @@ import net.runelite.api.events.NpcSpawned;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-
 @NullMarked
 @Slf4j
 public class NPCTracker {
@@ -20,7 +19,7 @@ public class NPCTracker {
         private final int npcIndex;
         private final int npcId;
 
-        private AnalyticsData.@Nullable DetailedPosition position;
+        private EventData.@Nullable DetailedPosition position;
 
         public TrackedNPC(int npcIndex, int npcId) {
             this.npcIndex = npcIndex;
@@ -48,7 +47,13 @@ public class NPCTracker {
         if (npc.getComposition().isFollower()) {
             return;
         }
-        eventLogger.submitEvent(new AnalyticsData.NPCSpawnedLogEntry(eventLogger.tickCount(), eventLogger.eventTime(), npc.getIndex(), npc.getId(), npc.getName(), npc.getCombatLevel()));
+        eventLogger.submitEvent(new EventData.NPCSpawnedLogEntry(
+                eventLogger.tickCount(),
+                eventLogger.eventTime(),
+                npc.getIndex(),
+                npc.getId(),
+                npc.getName(),
+                npc.getCombatLevel()));
     }
 
     public void onNpcDespawned(NpcDespawned event) {
@@ -56,7 +61,8 @@ public class NPCTracker {
         if (npc.getComposition().isFollower()) {
             return;
         }
-        eventLogger.submitEvent(new AnalyticsData.NPCDespawnedLogEntry(eventLogger.tickCount(), eventLogger.eventTime(), npc.getIndex(), npc.getId()));
+        eventLogger.submitEvent(new EventData.NPCDespawnedLogEntry(
+                eventLogger.tickCount(), eventLogger.eventTime(), npc.getIndex(), npc.getId()));
     }
 
     public void onNpcChanged(NpcChanged event) {
@@ -64,14 +70,19 @@ public class NPCTracker {
         if (event.getOld().isFollower()) {
             return;
         }
-        eventLogger.submitEvent(new AnalyticsData.NPCChangedLogEntry(eventLogger.tickCount(), eventLogger.eventTime(), npc.getIndex(), event.getOld().getId(), npc.getId()));
+        eventLogger.submitEvent(new EventData.NPCChangedLogEntry(
+                eventLogger.tickCount(),
+                eventLogger.eventTime(),
+                npc.getIndex(),
+                event.getOld().getId(),
+                npc.getId()));
     }
 
-    private void trackNpcDiff(TrackedNPC oldTracked, TrackedNPC newTracked) {
-    }
+    private void trackNpcDiff(TrackedNPC oldTracked, TrackedNPC newTracked) {}
 
     private TrackedNPC buildNpcTracking(NPC npc) {
-        final var detailedPosition = AnalyticsData.DetailedPosition.from(client, npc.getWorldLocation(), npc.getLocalLocation());
+        final var detailedPosition =
+                EventData.DetailedPosition.from(client, npc.getWorldLocation(), npc.getLocalLocation());
         final var trackedNPC = new TrackedNPC(npc.getIndex(), npc.getId());
         trackedNPC.setPosition(detailedPosition);
         return trackedNPC;

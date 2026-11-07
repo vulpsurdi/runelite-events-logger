@@ -1,4 +1,4 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @NullMarked
-public class AnalyticsData {
+public class EventData {
 
     private static final String LOG_VERSION = "1.0.0";
 
@@ -106,8 +106,10 @@ public class AnalyticsData {
         ZonedDateTime timestamp;
         int index;
         int npcId;
+
         @Nullable
         String name;
+
         int combatLevel;
     }
 
@@ -176,7 +178,7 @@ public class AnalyticsData {
                 Client client,
                 net.runelite.api.coords.WorldPoint worldPoint,
                 net.runelite.api.coords.LocalPoint localPoint) {
-            final var detailedPosition = new AnalyticsData.DetailedPosition(
+            final var detailedPosition = new EventData.DetailedPosition(
                     WorldPoint.from(worldPoint), LocalPoint.from(localPoint), false, null);
 
             final var worldView = client.getWorldView(localPoint.getWorldView());

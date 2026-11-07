@@ -1,6 +1,6 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
-import com.analyticsplugin.AnalyticsPluginConfig;
+import com.eventslogger.EventsLoggerConfig;
 import java.util.HashMap;
 import java.util.HashSet;
 import lombok.Data;
@@ -17,7 +17,7 @@ public class PlayerTracker {
     @Data
     private static class TrackedPlayer {
         private final int playerId;
-        private AnalyticsData.DetailedPosition position;
+        private EventData.DetailedPosition position;
 
         public TrackedPlayer(int playerId) {
             this.playerId = playerId;
@@ -38,7 +38,7 @@ public class PlayerTracker {
         this.eventLogger = eventLogger;
     }
 
-    public void onConfigChanged(AnalyticsPluginConfig config) {
+    public void onConfigChanged(EventsLoggerConfig config) {
         trackOtherPlayers = config.logOtherPlayers();
     }
 
@@ -49,7 +49,7 @@ public class PlayerTracker {
     private void logPlayerStartTracking(Player player) {
         final var localPlayer = client.getLocalPlayer();
         final boolean isLocal = localPlayer != null && localPlayer.getId() == player.getId();
-        eventLogger.submitEvent(new AnalyticsData.PlayerStartTrackingLogEntry(
+        eventLogger.submitEvent(new EventData.PlayerStartTrackingLogEntry(
                 eventLogger.tickCount(), eventLogger.eventTime(), player.getId(), player.getName(), isLocal));
     }
 
@@ -57,12 +57,12 @@ public class PlayerTracker {
      * Player is no longer tracked, likely because they are no longer visible to us.
      */
     private void logPlayerStopTracking(int playerId) {
-        eventLogger.submitEvent(new AnalyticsData.PlayerStopTrackingLogEntry(
-                eventLogger.tickCount(), eventLogger.eventTime(), playerId));
+        eventLogger.submitEvent(
+                new EventData.PlayerStopTrackingLogEntry(eventLogger.tickCount(), eventLogger.eventTime(), playerId));
     }
 
-    private void logPlayerPosition(int playerId, AnalyticsData.DetailedPosition detailedPosition) {
-        eventLogger.submitEvent(new AnalyticsData.PlayerMoveLogEntry(
+    private void logPlayerPosition(int playerId, EventData.DetailedPosition detailedPosition) {
+        eventLogger.submitEvent(new EventData.PlayerMoveLogEntry(
                 eventLogger.tickCount(), eventLogger.eventTime(), playerId, detailedPosition));
     }
 
@@ -71,7 +71,7 @@ public class PlayerTracker {
      */
     public boolean trackPlayer(Player player) {
         final var detailedPosition =
-                AnalyticsData.DetailedPosition.from(client, player.getWorldLocation(), player.getLocalLocation());
+                EventData.DetailedPosition.from(client, player.getWorldLocation(), player.getLocalLocation());
         var trackedPlayer = trackedPlayers.get(player.getId());
         final var localPlayer = client.getLocalPlayer();
         final boolean isLocal = localPlayer != null && localPlayer.getId() == player.getId();

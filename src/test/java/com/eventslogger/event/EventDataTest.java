@@ -1,4 +1,4 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -14,13 +14,13 @@ import net.runelite.api.WorldView;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 
-public class AnalyticsDataTest {
+public class EventDataTest {
 
     @Test
     public void worldPointFromCopiesCoordinates() {
         net.runelite.api.coords.WorldPoint rlWorldPoint = new net.runelite.api.coords.WorldPoint(3200, 3200, 1);
 
-        AnalyticsData.WorldPoint result = AnalyticsData.WorldPoint.from(rlWorldPoint);
+        EventData.WorldPoint result = EventData.WorldPoint.from(rlWorldPoint);
 
         assertEquals(3200, result.getX());
         assertEquals(3200, result.getY());
@@ -32,7 +32,7 @@ public class AnalyticsDataTest {
     public void localPointFromCopiesCoordinates() {
         net.runelite.api.coords.LocalPoint rlLocalPoint = new net.runelite.api.coords.LocalPoint(128, 256, 0);
 
-        AnalyticsData.LocalPoint result = AnalyticsData.LocalPoint.from(rlLocalPoint);
+        EventData.LocalPoint result = EventData.LocalPoint.from(rlLocalPoint);
 
         assertEquals(1, result.getX());
         assertEquals(2, result.getY());
@@ -55,8 +55,7 @@ public class AnalyticsDataTest {
                     .when(() -> net.runelite.api.coords.WorldPoint.fromLocalInstance(client, rlLocalPoint))
                     .thenReturn(null);
 
-            AnalyticsData.DetailedPosition position =
-                    AnalyticsData.DetailedPosition.from(client, rlWorldPoint, rlLocalPoint);
+            EventData.DetailedPosition position = EventData.DetailedPosition.from(client, rlWorldPoint, rlLocalPoint);
 
             assertFalse(position.isInstance());
             assertNull(position.getRealWorldPoint());
@@ -82,8 +81,7 @@ public class AnalyticsDataTest {
                     .when(() -> net.runelite.api.coords.WorldPoint.fromLocalInstance(client, rlLocalPoint))
                     .thenReturn(realWorldPoint);
 
-            AnalyticsData.DetailedPosition position =
-                    AnalyticsData.DetailedPosition.from(client, rlWorldPoint, rlLocalPoint);
+            EventData.DetailedPosition position = EventData.DetailedPosition.from(client, rlWorldPoint, rlLocalPoint);
 
             assertTrue(position.isInstance());
             assertEquals(1234, position.getRealWorldPoint().getX());
@@ -93,13 +91,13 @@ public class AnalyticsDataTest {
 
     @Test
     public void detailedPositionEqualityDependsOnFields() {
-        AnalyticsData.WorldPoint worldPoint = new AnalyticsData.WorldPoint(1, 2, 0, 100);
-        AnalyticsData.LocalPoint localPoint = new AnalyticsData.LocalPoint(10, 20, 0);
+        EventData.WorldPoint worldPoint = new EventData.WorldPoint(1, 2, 0, 100);
+        EventData.LocalPoint localPoint = new EventData.LocalPoint(10, 20, 0);
 
-        AnalyticsData.DetailedPosition a = new AnalyticsData.DetailedPosition(worldPoint, localPoint, false, null);
-        AnalyticsData.DetailedPosition b = new AnalyticsData.DetailedPosition(worldPoint, localPoint, false, null);
-        AnalyticsData.DetailedPosition different =
-                new AnalyticsData.DetailedPosition(new AnalyticsData.WorldPoint(9, 9, 0, 100), localPoint, false, null);
+        EventData.DetailedPosition a = new EventData.DetailedPosition(worldPoint, localPoint, false, null);
+        EventData.DetailedPosition b = new EventData.DetailedPosition(worldPoint, localPoint, false, null);
+        EventData.DetailedPosition different =
+                new EventData.DetailedPosition(new EventData.WorldPoint(9, 9, 0, 100), localPoint, false, null);
 
         assertEquals(a, b);
         assertEquals(a.hashCode(), b.hashCode());
