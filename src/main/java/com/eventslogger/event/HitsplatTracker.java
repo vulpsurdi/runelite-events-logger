@@ -1,4 +1,4 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
@@ -17,22 +17,22 @@ public class HitsplatTracker {
     public void logHitsplat(HitsplatApplied hitsplatApplied) {
         // The actor is who got hit; we don't know the damage source.
         final var actor = hitsplatApplied.getActor();
-        AnalyticsData.ActorType actorType = null;
+        EventData.ActorType actorType = null;
         int actorId = 0;
         if (actor instanceof Player) {
             final var player = (Player) actor;
-            actorType = AnalyticsData.ActorType.PLAYER;
+            actorType = EventData.ActorType.PLAYER;
             actorId = player.getId();
         } else if (actor instanceof NPC) {
             final var npc = (NPC) actor;
-            actorType = AnalyticsData.ActorType.NPC;
+            actorType = EventData.ActorType.NPC;
             actorId = npc.getId();
         } else {
-            actorType = AnalyticsData.ActorType.UNKNOWN;
+            actorType = EventData.ActorType.UNKNOWN;
             actorId = -1;
         }
 
-        eventLogger.submitEvent(new AnalyticsData.HitsplatLogEntry(
+        eventLogger.submitEvent(new EventData.HitsplatLogEntry(
                 eventLogger.tickCount(),
                 eventLogger.eventTime(),
                 hitsplatApplied.getHitsplat().getAmount(),

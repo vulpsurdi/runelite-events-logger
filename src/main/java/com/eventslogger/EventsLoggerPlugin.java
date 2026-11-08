@@ -1,11 +1,8 @@
-package com.analyticsplugin;
+package com.eventslogger;
 
-import com.analyticsplugin.event.AnalyticsData;
-import com.analyticsplugin.event.EventLogger;
-import com.analyticsplugin.event.HitsplatTracker;
-import com.analyticsplugin.event.PlayerTracker;
-import com.analyticsplugin.gson.DetailedPositionAdapter;
-import com.analyticsplugin.gson.ZonedDateTimeAdapter;
+import com.eventslogger.event.*;
+import com.eventslogger.gson.DetailedPositionAdapter;
+import com.eventslogger.gson.ZonedDateTimeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.Provides;
@@ -39,7 +36,6 @@ import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.party.events.UserPart;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.party.messages.StatusUpdate;
 import net.runelite.client.plugins.specialcounter.SpecialCounterUpdate;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
@@ -51,11 +47,11 @@ import org.jspecify.annotations.Nullable;
 @Slf4j
 @NullMarked
 @PluginDescriptor(
-        name = "Analytics",
-        internalName = "analytics-plugin",
-        description = "Track analytical data for player damage taken and done",
-        tags = {"analytics", "damage", "dps", "combat"})
-public class AnalyticsPlugin extends Plugin {
+        name = "Events Logger",
+        internalName = "events-logger",
+        description = "Logs game events to a local file",
+        tags = {"events", "logger", "logging", "data", "combat"})
+public class EventsLoggerPlugin extends Plugin {
 
     @Inject
     private Client client;
@@ -88,19 +84,22 @@ public class AnalyticsPlugin extends Plugin {
     private PlayerTracker playerTracker;
 
     @Nullable
+    private NPCTracker npcTracker;
+
+    @Nullable
     private HitsplatTracker hitsplatTracker;
 
     @Provides
-    AnalyticsPluginConfig provideConfig(ConfigManager configManager) {
-        return configManager.getConfig(AnalyticsPluginConfig.class);
+    EventsLoggerConfig provideConfig(ConfigManager configManager) {
+        return configManager.getConfig(EventsLoggerConfig.class);
     }
 
     @Override
     protected void startUp() {
         Panel panel = new Panel();
-        final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/com/analyticsplugin/panel_icon.png");
+        final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/com/eventslogger/panel_icon.png");
         navButton = NavigationButton.builder()
-                .tooltip("Analytics")
+                .tooltip("Events Logger")
                 .icon(icon)
                 .priority(7)
                 .panel(panel)
@@ -109,11 +108,11 @@ public class AnalyticsPlugin extends Plugin {
 
         gson = new GsonBuilder()
                 .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeAdapter())
-                .registerTypeAdapter(AnalyticsData.DetailedPosition.class, new DetailedPositionAdapter())
+                .registerTypeAdapter(EventData.DetailedPosition.class, new DetailedPositionAdapter())
                 .create();
         clock = Clock.systemDefaultZone();
 
-        final var config = configManager.getConfig(AnalyticsPluginConfig.class);
+        final var config = configManager.getConfig(EventsLoggerConfig.class);
 
         runeliteVersion = "RuneLite/" + RuneLiteProperties.getVersion() + "-" + RuneLiteProperties.getCommit();
         try {
@@ -128,6 +127,7 @@ public class AnalyticsPlugin extends Plugin {
         eventLogger.startUp();
         playerTracker = new PlayerTracker(client, eventLogger);
         playerTracker.onConfigChanged(config);
+        npcTracker = new NPCTracker(client, eventLogger);
         hitsplatTracker = new HitsplatTracker(eventLogger);
     }
 
@@ -151,7 +151,7 @@ public class AnalyticsPlugin extends Plugin {
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
-        final var config = configManager.getConfig(AnalyticsPluginConfig.class);
+        final var config = configManager.getConfig(EventsLoggerConfig.class);
         if (playerTracker != null) {
             playerTracker.onConfigChanged(config);
         }
@@ -180,13 +180,25 @@ public class AnalyticsPlugin extends Plugin {
     public void onGraphicChanged(GraphicChanged event) {}
 
     @Subscribe
-    public void onNpcSpawned(NpcSpawned event) {}
+    public void onNpcSpawned(NpcSpawned event) {
+        if (npcTracker != null) {
+            npcTracker.onNpcSpawned(event);
+        }
+    }
 
     @Subscribe
-    public void onNpcChanged(NpcChanged event) {}
+    public void onNpcChanged(NpcChanged event) {
+        if (npcTracker != null) {
+            npcTracker.onNpcChanged(event);
+        }
+    }
 
     @Subscribe
-    public void onNpcDespawned(NpcDespawned event) {}
+    public void onNpcDespawned(NpcDespawned event) {
+        if (npcTracker != null) {
+            npcTracker.onNpcDespawned(event);
+        }
+    }
 
     @Subscribe
     public void onAnimationChanged(AnimationChanged event) {}
@@ -205,10 +217,22 @@ public class AnalyticsPlugin extends Plugin {
 
     @Subscribe
     public void onGameTick(GameTick tick) {
-        if (playerTracker != null) {
-            playerTracker.trackPlayers();
-        }
         if (eventLogger != null) {
+            final var tickSnapshot = new TickSnapshot();
+            if (playerTracker != null) {
+                tickSnapshot.setPlayers(playerTracker.onGameTick());
+            }
+            if (npcTracker != null) {
+                tickSnapshot.setNpcs(npcTracker.onGameTick());
+            }
+            if (!tickSnapshot.isEmpty()) {
+                eventLogger.submitEvent(new EventData.TickSnapshotLogEntry(
+                        eventLogger.tickCount(),
+                        eventLogger.eventTime(),
+                        tickSnapshot
+                ));
+            }
+
             eventLogger.onGameTick();
         }
     }
@@ -216,7 +240,7 @@ public class AnalyticsPlugin extends Plugin {
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
         if (eventLogger != null) {
-            eventLogger.submitEvent(new AnalyticsData.GameStateChangedLogEntry(
+            eventLogger.submitEvent(new EventData.GameStateChangedLogEntry(
                     eventLogger.tickCount(),
                     eventLogger.eventTime(),
                     event.getGameState().getState()));
@@ -225,9 +249,6 @@ public class AnalyticsPlugin extends Plugin {
 
     @Subscribe
     public void onSpecialCounterUpdate(SpecialCounterUpdate event) {}
-
-    @Subscribe
-    public void onStatusUpdate(StatusUpdate event) {}
 
     @Subscribe
     public void onUserPart(UserPart event) {}

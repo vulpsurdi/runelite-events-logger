@@ -1,6 +1,6 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
-import com.analyticsplugin.AnalyticsPluginConfig;
+import com.eventslogger.EventsLoggerConfig;
 import java.util.HashMap;
 import java.util.HashSet;
 import lombok.Data;
@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 @Slf4j
@@ -17,7 +18,7 @@ public class PlayerTracker {
     @Data
     private static class TrackedPlayer {
         private final int playerId;
-        private AnalyticsData.DetailedPosition position;
+        private EventData.DetailedPosition position;
 
         public TrackedPlayer(int playerId) {
             this.playerId = playerId;
@@ -38,7 +39,7 @@ public class PlayerTracker {
         this.eventLogger = eventLogger;
     }
 
-    public void onConfigChanged(AnalyticsPluginConfig config) {
+    public void onConfigChanged(EventsLoggerConfig config) {
         trackOtherPlayers = config.logOtherPlayers();
     }
 
@@ -49,7 +50,7 @@ public class PlayerTracker {
     private void logPlayerStartTracking(Player player) {
         final var localPlayer = client.getLocalPlayer();
         final boolean isLocal = localPlayer != null && localPlayer.getId() == player.getId();
-        eventLogger.submitEvent(new AnalyticsData.PlayerStartTrackingLogEntry(
+        eventLogger.submitEvent(new EventData.PlayerStartTrackingLogEntry(
                 eventLogger.tickCount(), eventLogger.eventTime(), player.getId(), player.getName(), isLocal));
     }
 
@@ -57,46 +58,44 @@ public class PlayerTracker {
      * Player is no longer tracked, likely because they are no longer visible to us.
      */
     private void logPlayerStopTracking(int playerId) {
-        eventLogger.submitEvent(new AnalyticsData.PlayerStopTrackingLogEntry(
-                eventLogger.tickCount(), eventLogger.eventTime(), playerId));
-    }
-
-    private void logPlayerPosition(int playerId, AnalyticsData.DetailedPosition detailedPosition) {
-        eventLogger.submitEvent(new AnalyticsData.PlayerMoveLogEntry(
-                eventLogger.tickCount(), eventLogger.eventTime(), playerId, detailedPosition));
+        eventLogger.submitEvent(
+                new EventData.PlayerStopTrackingLogEntry(eventLogger.tickCount(), eventLogger.eventTime(), playerId));
     }
 
     /**
      * Begin or update tracking for a player. Return true if the player is being tracked, false if not.
      */
-    public boolean trackPlayer(Player player) {
-        final var detailedPosition =
-                AnalyticsData.DetailedPosition.from(client, player.getWorldLocation(), player.getLocalLocation());
-        var trackedPlayer = trackedPlayers.get(player.getId());
+    public boolean trackPlayer(Player player, TickSnapshot.PlayerSnapshot playerSnapshot) {
         final var localPlayer = client.getLocalPlayer();
         final boolean isLocal = localPlayer != null && localPlayer.getId() == player.getId();
         if (!isLocal && !trackOtherPlayers) {
             return false;
         }
+        var trackedPlayer = trackedPlayers.get(player.getId());
+        final var detailedPosition =
+                EventData.DetailedPosition.from(client, player.getWorldLocation(), player.getLocalLocation());
         if (trackedPlayer == null) {
             logPlayerStartTracking(player);
-            logPlayerPosition(player.getId(), detailedPosition);
+            playerSnapshot.getPositionAbsolutes().put("" + player.getId(), detailedPosition);
+
             trackedPlayer = new TrackedPlayer(player.getId());
             trackedPlayer.setPosition(detailedPosition);
             trackedPlayers.put(player.getId(), trackedPlayer);
         } else if (!trackedPlayer.position.equals(detailedPosition)) {
+            playerSnapshot.getPositionDeltas().put("" + player.getId(), trackedPlayer.position.diff(detailedPosition));
+
             trackedPlayer.setPosition(detailedPosition);
-            logPlayerPosition(player.getId(), detailedPosition);
         }
         return true;
     }
 
-    public void trackPlayers() {
+    public TickSnapshot.@Nullable PlayerSnapshot onGameTick() {
+        final var snapshot = new TickSnapshot.PlayerSnapshot();
         final var trackedPlayerSet = new HashSet<>(trackedPlayers.keySet());
         // For now just do top-level world view. If we need it in the future,
         // we can add tracking for players beyond the top-level.
         for (var player : client.getTopLevelWorldView().players()) {
-            if (trackPlayer(player)) {
+            if (trackPlayer(player, snapshot)) {
                 trackedPlayerSet.remove(player.getId());
             }
         }
@@ -104,5 +103,11 @@ public class PlayerTracker {
             logPlayerStopTracking(playerId);
             trackedPlayers.remove(playerId);
         });
+
+        if (snapshot.isEmpty()) {
+            return null;
+        } else {
+            return snapshot;
+        }
     }
 }

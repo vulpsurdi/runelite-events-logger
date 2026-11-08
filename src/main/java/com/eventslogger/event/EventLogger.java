@@ -1,4 +1,4 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
 import com.google.gson.Gson;
 import java.time.Clock;
@@ -46,12 +46,12 @@ public class EventLogger {
         return clock.instant().atZone(clock.getZone());
     }
 
-    public void submitEvent(AnalyticsData.LogEntry logEntry) {
+    public void submitEvent(EventData.LogEntry logEntry) {
         eventLoggerThread.submitEvent(logEntry);
     }
 
     public void logNewSession() {
-        submitEvent(new AnalyticsData.NewSessionLogEntry(tickCount(), eventTime(), runeliteVersion));
+        submitEvent(new EventData.NewSessionLogEntry(tickCount(), eventTime(), runeliteVersion));
     }
 
     private void openNewLogFile() {
@@ -70,7 +70,7 @@ public class EventLogger {
     }
 
     public void startUp() {
-        writerThread = new Thread(eventLoggerThread, "analytics-writer-thread");
+        writerThread = new Thread(eventLoggerThread, "events-logger-writer-thread");
         // Don't block the client from closing.
         writerThread.setDaemon(true);
         writerThread.start();

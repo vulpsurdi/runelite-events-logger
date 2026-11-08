@@ -1,4 +1,4 @@
-package com.analyticsplugin;
+package com.eventslogger;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -29,7 +29,7 @@ class Panel extends PluginPanel {
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
         header.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        final JLabel title = new JLabel("Analytics");
+        final JLabel title = new JLabel("Events Logger");
         title.setFont(FontManager.getRunescapeBoldFont());
         title.setForeground(Color.WHITE);
         title.setAlignmentX(LEFT_ALIGNMENT);

@@ -1,4 +1,4 @@
-package com.analyticsplugin.event;
+package com.eventslogger.event;
 
 import com.google.gson.Gson;
 import java.io.BufferedWriter;
@@ -32,7 +32,7 @@ public class EventLoggerThread implements Runnable {
 
     @Value
     private static class EventCommand implements Command {
-        AnalyticsData.LogEntry event;
+        EventData.LogEntry event;
     }
 
     @Value
@@ -40,7 +40,6 @@ public class EventLoggerThread implements Runnable {
         String logFileName;
     }
 
-    private static final String LOG_DIRECTORY = "analytics";
     private static final int FLUSH_INTERVAL_SECONDS = 10;
     private static final int OPEN_LOG_FILE_RETRY_ATTEMPTS = 10;
     private static final int OPEN_LOG_FILE_RETRY_DELAY_SECONDS = 10;
@@ -95,7 +94,7 @@ public class EventLoggerThread implements Runnable {
     public EventLoggerThread(Gson gson, Clock clock, Filepath pluginPath) {
         this.gson = gson;
         this.clock = clock;
-        this.logDirectory = pluginPath.join(LOG_DIRECTORY);
+        this.logDirectory = pluginPath;
         this.lastSuccessfulSubmission = clock.instant();
     }
 
@@ -149,7 +148,7 @@ public class EventLoggerThread implements Runnable {
         Thread.currentThread().interrupt();
     }
 
-    private void writeEvent(AnalyticsData.LogEntry logEntry) {
+    private void writeEvent(EventData.LogEntry logEntry) {
         if (logFile != null) {
             final var json = gson.toJson(logEntry);
             log.debug("{}", json);
@@ -266,7 +265,7 @@ public class EventLoggerThread implements Runnable {
     /**
      * Submits an event to be written by the event logger thread.
      */
-    public void submitEvent(AnalyticsData.LogEntry logEntry) {
+    public void submitEvent(EventData.LogEntry logEntry) {
         if (killSwitch.get()) {
             return;
         }

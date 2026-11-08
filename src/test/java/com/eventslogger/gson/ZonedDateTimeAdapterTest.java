@@ -1,4 +1,4 @@
-package com.analyticsplugin.gson;
+package com.eventslogger.gson;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
