@@ -54,6 +54,7 @@ There's a lot of things you can do with the data. But first, you need to actuall
   - by channel if possible
 - Track party members
 - Track equipment
+- Track instance template chunks (for chambers layout)
 - Add fine-tune options for each type of tracking.
 - Compress log files when they are closed.
 - Multilogging supports (save log files by username folders)

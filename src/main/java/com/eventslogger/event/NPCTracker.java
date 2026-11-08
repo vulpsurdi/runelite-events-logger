@@ -1,6 +1,9 @@
 package com.eventslogger.event;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Objects;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -26,7 +29,7 @@ public class NPCTracker {
             this.npcId = npcId;
         }
 
-        public static TrackedNPC zero() {
+        public static TrackedNPC blank() {
             return new TrackedNPC(0, 0);
         }
     }
@@ -78,7 +81,15 @@ public class NPCTracker {
                 npc.getId()));
     }
 
-    private void trackNpcDiff(TrackedNPC oldTracked, TrackedNPC newTracked) {}
+    private void trackNpcDiff(TrackedNPC oldTracked, TrackedNPC newTracked, TickSnapshot.NPCSnapshot snapshot) {
+        if (!Objects.equals(oldTracked.getPosition(), newTracked.getPosition()) && newTracked.getPosition() != null) {
+            if (oldTracked.getPosition() == null) {
+                snapshot.positionAbsolutes.put("" + newTracked.npcIndex, newTracked.getPosition());
+            } else {
+                snapshot.positionDeltas.put("" + newTracked.npcIndex, oldTracked.getPosition().diff(newTracked.getPosition()));
+            }
+        }
+    }
 
     private TrackedNPC buildNpcTracking(NPC npc) {
         final var detailedPosition =
@@ -88,24 +99,31 @@ public class NPCTracker {
         return trackedNPC;
     }
 
-    private void trackNpc(NPC npc) {
+    private void trackNpc(NPC npc, TickSnapshot.NPCSnapshot snapshot) {
         if (npc.getComposition().isFollower()) {
             return;
         }
         final var trackedNpc = buildNpcTracking(npc);
         final var existingTracking = trackedNpcs.get(npc.getIndex());
-        trackNpcDiff(existingTracking == null ? TrackedNPC.zero() : existingTracking, trackedNpc);
+        trackNpcDiff(existingTracking == null ? TrackedNPC.blank() : existingTracking, trackedNpc, snapshot);
         trackedNpcs.put(npc.getIndex(), trackedNpc);
     }
 
-    public void onGameTick() {
-        final var npcs = client.getTopLevelWorldView().npcs();
-        final var trackedIndices = trackedNpcs.keySet();
-        for (final var npc : npcs) {
-            trackNpc(npc);
+    public TickSnapshot.@Nullable NPCSnapshot onGameTick() {
+        final var snapshot = new TickSnapshot.NPCSnapshot();
+        final var trackedIndices = new HashSet<>(trackedNpcs.keySet());
+        // For now just do top-level world view. If we need it in the future,
+        // we can add tracking for players beyond the top-level.
+        for (var npc : client.getTopLevelWorldView().npcs()) {
+            trackNpc(npc, snapshot);
             trackedIndices.remove(npc.getIndex());
         }
-
         trackedIndices.forEach(trackedNpcs::remove);
+
+        if (snapshot.isEmpty()) {
+            return null;
+        } else {
+            return snapshot;
+        }
     }
 }

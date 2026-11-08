@@ -1,10 +1,6 @@
 package com.eventslogger;
 
-import com.eventslogger.event.EventData;
-import com.eventslogger.event.EventLogger;
-import com.eventslogger.event.HitsplatTracker;
-import com.eventslogger.event.NPCTracker;
-import com.eventslogger.event.PlayerTracker;
+import com.eventslogger.event.*;
 import com.eventslogger.gson.DetailedPositionAdapter;
 import com.eventslogger.gson.ZonedDateTimeAdapter;
 import com.google.gson.Gson;
@@ -185,17 +181,23 @@ public class EventsLoggerPlugin extends Plugin {
 
     @Subscribe
     public void onNpcSpawned(NpcSpawned event) {
-        npcTracker.onNpcSpawned(event);
+        if (npcTracker != null) {
+            npcTracker.onNpcSpawned(event);
+        }
     }
 
     @Subscribe
     public void onNpcChanged(NpcChanged event) {
-        npcTracker.onNpcChanged(event);
+        if (npcTracker != null) {
+            npcTracker.onNpcChanged(event);
+        }
     }
 
     @Subscribe
     public void onNpcDespawned(NpcDespawned event) {
-        npcTracker.onNpcDespawned(event);
+        if (npcTracker != null) {
+            npcTracker.onNpcDespawned(event);
+        }
     }
 
     @Subscribe
@@ -215,10 +217,22 @@ public class EventsLoggerPlugin extends Plugin {
 
     @Subscribe
     public void onGameTick(GameTick tick) {
-        if (playerTracker != null) {
-            playerTracker.trackPlayers();
-        }
         if (eventLogger != null) {
+            final var tickSnapshot = new TickSnapshot();
+            if (playerTracker != null) {
+                tickSnapshot.setPlayers(playerTracker.onGameTick());
+            }
+            if (npcTracker != null) {
+                tickSnapshot.setNpcs(npcTracker.onGameTick());
+            }
+            if (!tickSnapshot.isEmpty()) {
+                eventLogger.submitEvent(new EventData.TickSnapshotLogEntry(
+                        eventLogger.tickCount(),
+                        eventLogger.eventTime(),
+                        tickSnapshot
+                ));
+            }
+
             eventLogger.onGameTick();
         }
     }
